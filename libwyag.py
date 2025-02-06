@@ -52,3 +52,70 @@ def main(argv=sys.argv[1:]):
 # Example workflow. If wyag init --bare repo is called, argparse recognizes init as the subcommand
 # Parses --bare and repo as arguments for init. args.command becomes init and the match statement
 # executes the cmd_init(args) function. If defined, cmd_init(args) processes args.bare and args.directory
+
+# Create repo object
+class GitRepo (object):
+    """A git repository"""
+    # a repo has two components, a worktree for files in version control. Regular directory.
+    workTree = None
+    # and a git directory, where Git stores it's own data. Child directory of worktree, called .git
+    gitDir = None
+    conf = None
+
+    def __init__(self, path, force=False):
+        # assigning path to workTree
+        self.workTree = path
+        # creating gitDir with .git extension
+        self.gitDir = os.path.join(path, ".git")
+
+        # check if repo exists and contains subdirectory .git
+        if not (force or os.path.isdir(self.gitDir)):
+            raise Exception(f"Path: {path} is not a Git Repo")
+
+        # read config file in .git/config
+        self.conf = configparser.ConfigParser()
+        # assign confif from repo file
+        cf = repo_file(self, "config")
+
+        # read config if exists and path exists
+        if cf and os.path.exists(cf):
+            self.conf.read([cf])
+        # check if not forced and raise error RE missing config
+        elif not force:
+            raise Exception("Config file missing")
+
+        # if cf and cf path exist, then check if not force
+        if not force:
+            #get repo format version
+            vers = int(self.conf.get("core", "repositoryformatversion"))
+            # if not 0 raise exception
+            if vers != 0:
+                raise Exception("Unsupported repositoryformatversion: {vers}")
+
+# path building function. Variadic arg passed, allows for multiple path components.
+def repo_path(repo, *path):
+    """Create path under repo's git directory"""
+    return os.path.join(repo.gitdir, *path)
+
+# return and/or create path to file
+def repo_file(repo, *path, mkdir=False):
+    """create directory name if absent"""
+    if repo_dir(repo, *path[:-1], mkdir=mkdir):
+        return repo_path(repo, *path)
+
+# return and/or create path to dir
+def repo_path(repo, *path, mkdir=False):
+    """same as repo_path but mkdir *path if absent & if mkdir"""
+    path = repo_path(repo, *path)
+
+    if os.path.exists(path):
+        if (os.path.isdir(path)):
+            return path
+        else:
+            raise Exception(f"{path} is NOT a directory")
+
+    if mkdir:
+        os.makedirs(path)
+        return path
+    else:
+        return None
