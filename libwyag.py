@@ -168,3 +168,41 @@ def repo_default_config():
     ret.set("core", "bare", "false")
 
     return ret
+
+# creating init command functionality
+# create new subparser to handle command line argument
+argsp =argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
+
+# add argument to init command that points to the directory where the repo will be created
+argsp.add_argument("path",
+                   metavar="directory",
+                   nargs="?",
+                   default=".",
+                   help="Where to create repo.")
+
+# create bridge function. Reads arg values from object returned by argparse
+def cmd_init(args):
+    repo_create(args.path)
+
+
+# create repo_find() function
+def repo_find(path=".", required=True):
+    """function to find root of git repo"""
+    path = os.path.realpath(path)
+
+    if os.path.isdir(os.path.join(path, ".git")):
+        return GitRepo(path)
+
+    # if not returned, recurse in parent directory
+    parent = os.path.realpath(os.path.join(path, ".."))
+
+    if parent == path:
+        # bottom case
+        # os.path.join("/", "..") == "/"
+        # if parent is the same as path, we've reached the root
+        if required:
+            raise Exception("No git directory.")
+        else:
+            return None
+
+    return repo_find(parent, required)
