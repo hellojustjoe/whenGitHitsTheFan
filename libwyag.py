@@ -156,11 +156,15 @@ def repo_create(path):
 
 # setting default config settings
 def repo_default_config():
+    """Set default config settings"""
     ret = configparser.ConfigParser()
 
     ret.add_section("core")
+    # version of gitdir format. 0 is initial format, 1 same with extensions, >1 git will panic
     ret.set("core", "repositoryformatversion", "0")
+    # disabling tracking of file models (permissions) changes in the work tree
     ret.set("core", "filemode", "false")
+    # indicates this repo has worktree. Git supports optional worktree key that indicates location of worktree if not ".."
     ret.set("core", "bare", "false")
 
     return ret
