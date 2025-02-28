@@ -206,3 +206,8 @@ def repo_find(path=".", required=True):
             return None
 
     return repo_find(parent, required)
+
+
+# Creating objects. Git is "content-addressed filesystem" so filenames are derived from file contents.
+# Files aren't modified in git, a new file is created in a different location. Objects are files in the
+# git repo whose paths are determined by their contents.
