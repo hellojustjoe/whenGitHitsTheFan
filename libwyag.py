@@ -49,16 +49,21 @@ def main(argv=sys.argv[1:]):
         case "tag"          : cmd_tag(args)
         case _              : print("Absolutely not. Not a command.")
 
-# Example workflow. If wyag init --bare repo is called, argparse recognizes init as the subcommand
-# Parses --bare and repo as arguments for init. args.command becomes init and the match statement
-# executes the cmd_init(args) function. If defined, cmd_init(args) processes args.bare and args.directory
+# Example workflow. If wyag init --bare repo is called, argparse recognizes
+# init as the subcommand
+# Parses --bare and repo as arguments for init. args.command becomes init and
+# the match statement
+# executes the cmd_init(args) function. If defined, cmd_init(args) processes
+# args.bare and args.directory
 
 # Create repo object
 class GitRepo (object):
     """A git repository"""
-    # a repo has two components, a worktree for files in version control. Regular directory.
+    # a repo has two components, a worktree for files in version control.
+    # Regular directory.
     workTree = None
-    # and a git directory, where Git stores it's own data. Child directory of worktree, called .git
+    # and a git directory, where Git stores it's own data.
+    # Child directory of worktree, called .git
     gitDir = None
     conf = None
 
@@ -160,11 +165,13 @@ def repo_default_config():
     ret = configparser.ConfigParser()
 
     ret.add_section("core")
-    # version of gitdir format. 0 is initial format, 1 same with extensions, >1 git will panic
+    # version of gitdir format. 0 is initial format, 1 same with extensions,
+    # >1 git will panic
     ret.set("core", "repositoryformatversion", "0")
     # disabling tracking of file models (permissions) changes in the work tree
     ret.set("core", "filemode", "false")
-    # indicates this repo has worktree. Git supports optional worktree key that indicates location of worktree if not ".."
+    # indicates this repo has worktree. Git supports optional worktree key that
+    # indicates location of worktree if not ".."
     ret.set("core", "bare", "false")
 
     return ret
@@ -173,7 +180,8 @@ def repo_default_config():
 # create new subparser to handle command line argument
 argsp =argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
 
-# add argument to init command that points to the directory where the repo will be created
+# add argument to init command that points to the directory where
+# the repo will be created
 argsp.add_argument("path",
                    metavar="directory",
                    nargs="?",
@@ -208,6 +216,34 @@ def repo_find(path=".", required=True):
     return repo_find(parent, required)
 
 
-# Creating objects. Git is "content-addressed filesystem" so filenames are derived from file contents.
-# Files aren't modified in git, a new file is created in a different location. Objects are files in the
+# Creating objects. Git is "content-addressed filesystem" so filenames are
+# derived from file contents.Files aren't modified in git, a new file is
+# created in a different location. Objects are files in the
 # git repo whose paths are determined by their contents.
+
+# creating object object
+
+class GitObject (object):
+
+    def __init__(self, data=None):
+        """__init__ either loads the object from the provided data,
+        or calls the subclass-provided init() to create a new, empty object.
+        """
+        if data != None:
+            self.deserialize(data)
+        else:
+            self.init()
+
+    def serialize(self, repo):
+        """This function MUST be implemented by subclasses
+        It must read the objects contents from self.data, a byte string, and
+        do whatever it takes to convert it into a meaningful representation.
+        What that means depends on each subclasss
+        """
+        raise Exception("Unimplemented")
+
+    def deserialize(self, data):
+        raise Exception("Unimplemented")
+
+    def init(self):
+        pass # do nothing
